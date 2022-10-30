@@ -13,6 +13,7 @@ import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.util.Collector
 import org.apache.flink.streaming.api.scala._
+import sourcetest.SensorReading
 
 object ProcessFunctionTest {
   def main(args: Array[String]): Unit = {
@@ -46,7 +47,7 @@ object ProcessFunctionTest {
 
 
     val value1: KeyedStream[SensorReading, String] = dataStream.keyBy(_.id)
-//    val value2 = value1.process(new TempIncre Alert())
+//    val value2 = value1.process(new TempIncreAlert())
 //    val value3 = value1.process(new TempChangeAlert2(10.0))
 //val value3: DataStream[(String, Double, Double)] = value1.flatMap(new TempChangeAlert(10.0))
 

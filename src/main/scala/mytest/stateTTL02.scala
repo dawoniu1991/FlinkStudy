@@ -31,13 +31,17 @@ class testflatmap extends KeyedProcessFunction[String,(String,Long,Int),(String,
 
     val allPageViewCounts: ListBuffer[(String, Long)] = ListBuffer()
     val iter = mapstate.entries().iterator()
+    var countnum=0
     while(iter.hasNext){
+      countnum=countnum+1
       val entry = iter.next()
       allPageViewCounts += ((entry.getKey, entry.getValue))
     }
 
     println("end~~~~~~~~~"+allPageViewCounts.size)
+    println("countnum~~~~~~============="+countnum)
     val key = value._1
+
     if(!mapstate.contains(key)){
       mapstate.put(key,1)
       println("this is 1 initial=============================================")

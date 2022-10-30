@@ -1,6 +1,5 @@
 package mytest
 
-import apitest.SensorReading
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.api.common.serialization.SimpleStringEncoder
 import org.apache.flink.contrib.streaming.state.{PredefinedOptions, RocksDBStateBackend}

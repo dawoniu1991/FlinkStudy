@@ -8,6 +8,7 @@ import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.watermark.Watermark
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.util.Collector
+import sourcetest.SensorReading
 
 object WindowTest {
   def main(args: Array[String]): Unit = {

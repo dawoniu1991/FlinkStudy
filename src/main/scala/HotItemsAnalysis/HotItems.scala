@@ -2,7 +2,6 @@ package HotItemsAnalysis
 
 import java.sql.Timestamp
 import java.util.Properties
-
 import org.apache.flink.api.common.functions.AggregateFunction
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.api.common.state.{ListState, ListStateDescriptor}
@@ -14,8 +13,9 @@ import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.scala.function.WindowFunction
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011
 import org.apache.flink.util.Collector
+
+import java.lang
 
 
 // 定义输入数据样例类
@@ -27,27 +27,27 @@ object HotItems {
   def main(args: Array[String]): Unit = {
     // 创建环境及配置
     val env = StreamExecutionEnvironment.getExecutionEnvironment
-    env.setParallelism(1)
+//    env.setParallelism(1)
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 
     // 读取数据并转换成样例类类型，并且提取时间戳设置watermark
-//    val inputStream: DataStream[String] = env.readTextFile("src\\main\\resources\\UserBehavior.csv")
+    val inputStream: DataStream[String] = env.readTextFile("src\\main\\resources\\UserBehavior.csv")
 
-    val properties = new Properties()
-    properties.setProperty("bootstrap.servers", "localhost:9092")
-    properties.setProperty("group.id", "consumer-group")
-    properties.setProperty("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-    properties.setProperty("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-    properties.setProperty("auto.offset.reset", "latest")
-
-    val inputStream: DataStream[String] = env.addSource(new FlinkKafkaConsumer011[String]("hotitems", new SimpleStringSchema(), properties))
+//    val properties = new Properties()
+//    properties.setProperty("bootstrap.servers", "localhost:9092")
+//    properties.setProperty("group.id", "consumer-group")
+//    properties.setProperty("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+//    properties.setProperty("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+//    properties.setProperty("auto.offset.reset", "latest")
+//
+//    val inputStream: DataStream[String] = env.addSource(new FlinkKafkaConsumer[String]("hotitems", new SimpleStringSchema(), properties))
     val dataStream: DataStream[UserBehavior] = inputStream
       .map( line => {
         val arr = line.split(",")
         UserBehavior( arr(0).toLong, arr(1).toLong, arr(2).toInt, arr(3), arr(4).toLong )
       } )
       .assignAscendingTimestamps( _.timestamp * 1000L )
-    dataStream.print("data")
+//    dataStream.print("data")
 
     // 得到窗口聚合结果
     val aggStream: DataStream[ItemViewCount] = dataStream
@@ -63,7 +63,7 @@ object HotItems {
       .keyBy("windowEnd")
       .process( new TopNHotItemsResult(5) )
 
-    resultStream.print()
+    resultStream.print("res")
 
     env.execute("hot items job")
   }
@@ -115,6 +115,27 @@ class TopNHotItemsResult(n: Int) extends KeyedProcessFunction[Tuple, ItemViewCou
     // 先将状态提取出来，用一个List保存
     import scala.collection.JavaConversions._
     val allItemViewCountList: List[ItemViewCount] = itemViewCountListState.get().toList
+
+//    打印状态数据
+//    println("allItemViewCountList===="+allItemViewCountList.size())
+//    val D1MapTuple = itemViewCountListState.get() match {
+//      case null => {
+//        println("MutableMapTuple()")
+//      }
+//      case d1State => {
+//        if (d1State.size < 5000) {
+//          d1State.foreach(action => {
+//            println(action)
+//          })
+//          println("aaaaaaaaaaaaaaaaaaaaaaaa")
+//          "1111"
+//        } else {
+//          println("bbbbbbbbbbbbbbbbbbbbb")
+//          "2222"
+//        }
+//      }
+//    }
+//    println("D1MapTuple============"+D1MapTuple)
 
     // 提前清空状态
     itemViewCountListState.clear()

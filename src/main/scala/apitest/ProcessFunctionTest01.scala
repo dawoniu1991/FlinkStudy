@@ -6,13 +6,13 @@ package apitest
  */
 
 import java.util
-
 import org.apache.flink.api.common.state.{ListState, ListStateDescriptor, ValueState, ValueStateDescriptor}
 import org.apache.flink.api.java.tuple.Tuple
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.util.Collector
+import sourcetest.SensorReading
 
 
 object ProcessFunctionTest01 {

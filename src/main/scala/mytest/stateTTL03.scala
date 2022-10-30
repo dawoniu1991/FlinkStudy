@@ -24,10 +24,11 @@ class testkeyedprocess extends KeyedProcessFunction[String,(String,Long,Int),(St
   private var valuestate: ValueState[Long] = _
   override def processElement(value: (String, Long, Int), ctx: KeyedProcessFunction[String, (String, Long, Int), (String, Long, Int)]#Context, out: Collector[(String, Long, Int)]): Unit = {
     val tmp = valuestate.value()
-    println("end~~~~~~~~~"+tmp)
+//    println(ctx.getCurrentKey)
+    println(ctx.getCurrentKey+"end~~~~~~~~~"+tmp)
     if(tmp==0){
       valuestate.update(tmp+1)
-      println("this is 1 initial=============================================")
+      println("this is initial key========================================="+ctx.getCurrentKey)
       out.collect(value)
     }else if(tmp<10){
         valuestate.update(tmp+1)
@@ -61,7 +62,8 @@ object stateTTL03 {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime)
     env.setParallelism(2)
-    val result: DataStream[(String, Long, Int)] = env.addSource(new SensorSource04()).keyBy(_._1).process(new testkeyedprocess())
+//    val result: DataStream[(String, Long, Int)] = env.addSource(new SensorSource04()).keyBy(_._1).process(new testkeyedprocess())
+    val result: DataStream[(String, Long, Int)] = env.addSource(new SensorSource05()).keyBy(_._1).process(new testkeyedprocess())
     result.print("result====")
     result.getSideOutput(new OutputTag[(String, Long,Int)]("black-list")).print("side===================")
     env.execute("test-Keyed-State")
@@ -89,7 +91,8 @@ class SensorSource05() extends SourceFunction[(String,Long,Int)]{
         //        t=>ctx.collect(SensorReading(t._1,curTime,t._2).toString)
         t =>   {
           //          val str = (t._1, curTime, t._2).toString()
-          val str = (t._1, curTime, t._2)
+//          val str = (t._1, curTime, t._2)
+          val str = ("sen_"+rand.nextInt(5).toString, curTime, t._2)
           //                              println(str)
           ctx.collect(str)
         }

@@ -11,7 +11,7 @@ import org.apache.flink.streaming.api.functions.sink.filesystem.bucketassigners.
 import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.OnCheckpointRollingPolicy
 import org.apache.flink.streaming.api.{CheckpointingMode, TimeCharacteristic}
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment, createTypeInformation}
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer
 
 import java.util.Properties
 import java.util.concurrent.TimeUnit
@@ -50,12 +50,12 @@ object readKafka {
     val props = new Properties()
 
     val TOPIC_NAME = "adn-tracking_v3_fluentd_click-log_txt-0"
-    props.setProperty(BOOTSTRAP_SERVERS, "")
+    props.setProperty(BOOTSTRAP_SERVERS, "172.31.21.220:9091,172.31.18.201:9091,172.31.22.198:9091,172.31.23.144:9091,172.31.29.11:9091,172.31.29.59:9091,172.31.21.126:9091")
     props.setProperty(GROUP_ID, "jiangfan_get_sample_kafka_data20211208")
     props.setProperty(AUTO_OFFSET_RESET, "latest")
 
     val dataSource =
-      env.addSource[String](new FlinkKafkaConsumer011[String](TOPIC_NAME, new SimpleStringSchema(), props)
+      env.addSource[String](new FlinkKafkaConsumer[String](TOPIC_NAME, new SimpleStringSchema(), props)
         .setCommitOffsetsOnCheckpoints(true))
         .setParallelism(1).name("source-test").uid("source-test")
 

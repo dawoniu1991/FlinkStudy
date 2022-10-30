@@ -15,6 +15,7 @@ import org.apache.flink.runtime.state.memory.MemoryStateBackend
 import org.apache.flink.streaming.api.CheckpointingMode
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.util.Collector
+import sourcetest.SensorReading
 
 /**
  * Copyright (c) 2018-2028 尚硅谷 All Rights Reserved
@@ -46,7 +47,6 @@ object StateTest {
 
     // 重启策略
     env.setRestartStrategy(RestartStrategies.fixedDelayRestart(5, 10000L))
-    //    env.setRestartStrategy(RestartStrategies.noRestart())
 
     // 读取数据
     val inputStream: DataStream[String] = env.socketTextStream("localhost", 7777)
@@ -83,14 +83,10 @@ object StateTest {
 class TempChangeWarning(threshold: Double) extends RichFlatMapFunction[SensorReading, (String, Double, Double)]{
   // 定义状态，保存上一个温度值
   private var lastTempState: ValueState[Double] = _
-  val defaultTemp: Double = -273.15
 
-  // 加入一个标识位状态，用来表示是否出现过当前传感器数据
-  private var isOccurState: ValueState[Boolean] = _
 
   override def open(parameters: Configuration): Unit = {
-    lastTempState = getRuntimeContext.getState( new ValueStateDescriptor[Double]("last-temp", classOf[Double], defaultTemp) )
-    isOccurState = getRuntimeContext.getState( new ValueStateDescriptor[Boolean]("is-occur", classOf[Boolean]) )
+    lastTempState = getRuntimeContext.getState( new ValueStateDescriptor[Double]("last-temp", classOf[Double]) )
   }
 
   override def flatMap(value: SensorReading, out: Collector[(String, Double, Double)]): Unit = {
@@ -100,29 +96,11 @@ class TempChangeWarning(threshold: Double) extends RichFlatMapFunction[SensorRea
     // 跟当前温度作比较，如果大于阈值，输出报警信息
     val diff = (value.temperature - lastTemp).abs
     //    if( diff > threshold && lastTemp != defaultTemp ){
-    if( isOccurState.value() && diff > threshold ){
+    if(  diff > threshold ){
       out.collect( (value.id, lastTemp, value.temperature) )
     }
 
     // 更新状态
     lastTempState.update(value.temperature)
-    isOccurState.update(true)
   }
-}
-
-class MyStateOperator extends RichMapFunction[SensorReading, String]{
-
-  //  var myState: ValueState[Int] = _
-  lazy val myState: ValueState[Int] = getRuntimeContext.getState[Int](new ValueStateDescriptor[Int]("myInt", classOf[Int]))
-
-  override def open(parameters: Configuration): Unit = {
-    //    myState = getRuntimeContext.getState[Int](new ValueStateDescriptor[Int]("myInt", classOf[Int]))
-  }
-
-  override def map(value: SensorReading): String = {
-    myState.value()
-    myState.update(10)
-    ""
-  }
-
 }

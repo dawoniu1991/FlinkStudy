@@ -18,7 +18,7 @@ object StateTest {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setParallelism(1)
     env.setStateBackend(new FsStateBackend("file:///data/StateTest/FsStateBackend", true))
-    env.setStateBackend(new RocksDBStateBackend("file:///data/StateTest/RocksDBStateBackend"))
+//    env.setStateBackend(new RocksDBStateBackend("file:///data/StateTest/RocksDBStateBackend"))
 
     // 开启checkpoint
     env.enableCheckpointing()

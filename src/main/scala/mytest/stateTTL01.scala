@@ -29,7 +29,9 @@ class testTTL extends RichFlatMapFunction[(String,Long,Int),Long]{
 //      out.collect(tmp)
 //    }
     if(value._2% 10 ==0){
+      println(value)
       sum.update(tmp)
+
       out.collect(tmp)
     }
   }
@@ -52,7 +54,7 @@ object stateTTL01 {
   def main(args: Array[String]): Unit = {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime)
-    env.setParallelism(3)
+    env.setParallelism(2)
     env.addSource(new SensorSource03()).keyBy(_._1).flatMap(new testTTL())
       .print()
 
@@ -67,7 +69,7 @@ class SensorSource03() extends SourceFunction[(String,Long,Int)]{
   //  override def run(ctx: SourceFunction.SourceContext[SensorReading]): Unit = {
   override def run(ctx: SourceFunction.SourceContext[(String,Long,Int)]): Unit = {
     val rand = new Random()
-    var curTemp: immutable.IndexedSeq[(String, Int)] = 1.to(1).map(
+    var curTemp: immutable.IndexedSeq[(String, Int)] = 1.to(5).map(
       i => ("sensor_" + i, 60 + rand.nextInt(10) * 20)
     )
 
@@ -82,7 +84,8 @@ class SensorSource03() extends SourceFunction[(String,Long,Int)]{
         //        t=>ctx.collect(SensorReading(t._1,curTime,t._2).toString)
         t =>   {
 //          val str = (t._1, curTime, t._2).toString()
-          val str = (t._1, curTime, t._2)
+//          val str = (t._1, curTime, t._2)
+          val str = ( rand.nextInt(5).toString, curTime, t._2)
 //                    println(str)
           ctx.collect(str)
         }

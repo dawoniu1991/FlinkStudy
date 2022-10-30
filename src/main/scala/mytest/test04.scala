@@ -16,6 +16,7 @@ object test03 {
 //    val path = this.getClass.getResource("/data/wc.txt").getPath
     val path="data\\test03\\input"
 
+    val value1: DataStream[String] = env.readTextFile(path)
 
     val stream: KeyedStream[Word, String] = env.readTextFile(path).flatMap(_.split(" "))
       .map(Word(_))

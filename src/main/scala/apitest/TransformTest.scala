@@ -5,6 +5,7 @@ import org.apache.flink.api.java.tuple.Tuple
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
+import sourcetest.SensorReading
 
 object TransformTest {
   def main(args: Array[String]): Unit = {

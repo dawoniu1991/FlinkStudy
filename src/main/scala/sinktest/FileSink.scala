@@ -1,11 +1,11 @@
 package sinktest
 
 
-import apitest.SensorReading
 import org.apache.flink.api.common.serialization.SimpleStringEncoder
 import org.apache.flink.core.fs.Path
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink
 import org.apache.flink.streaming.api.scala._
+import sourcetest.SensorReading
 
 
 

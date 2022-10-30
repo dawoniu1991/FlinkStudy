@@ -1,5 +1,6 @@
 package OrderPayDetect
 
+import CEP.{OrderEvent, OrderPayResult}
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction
@@ -18,7 +19,7 @@ object OrderPayTimeoutWithoutCep {
     val orderEventStream = env.readTextFile(resource.getPath)
       .map( line => {
         val arr = line.split(",")
-        OrderEvent(arr(0).toLong, arr(1), arr(2), arr(3).toLong)
+        OrderEvent(arr(0), arr(1), arr(2), arr(3).toLong)
       } )
       .assignAscendingTimestamps( _.timestamp * 1000L )
 
@@ -37,13 +38,13 @@ object OrderPayTimeoutWithoutCep {
 }
 
 // 实现自定义的订单支付检测流程
-class OrderPayDetect() extends KeyedProcessFunction[Long, OrderEvent, OrderPayResult]{
+class OrderPayDetect() extends KeyedProcessFunction[String, OrderEvent, OrderPayResult]{
   // 定义状态，用来保存是否来过create、pay事件，保存定时器事件戳
   lazy val isPayedState: ValueState[Boolean] = getRuntimeContext.getState(new ValueStateDescriptor[Boolean]("is-payed", classOf[Boolean]))
   lazy val isCreatedState: ValueState[Boolean] = getRuntimeContext.getState(new ValueStateDescriptor[Boolean]("is-created", classOf[Boolean]))
   lazy val timerTsState: ValueState[Long] = getRuntimeContext.getState(new ValueStateDescriptor[Long]("timer-ts", classOf[Long]))
 
-  override def processElement(value: OrderEvent, ctx: KeyedProcessFunction[Long, OrderEvent, OrderPayResult]#Context, out: Collector[OrderPayResult]): Unit = {
+  override def processElement(value: OrderEvent, ctx: KeyedProcessFunction[String, OrderEvent, OrderPayResult]#Context, out: Collector[OrderPayResult]): Unit = {
     // 先拿到当前状态
     val isPayed = isPayedState.value()
     val isCreated = isCreatedState.value()
@@ -94,14 +95,14 @@ class OrderPayDetect() extends KeyedProcessFunction[Long, OrderEvent, OrderPayRe
     }
   }
 
-  override def onTimer(timestamp: Long, ctx: KeyedProcessFunction[Long, OrderEvent, OrderPayResult]#OnTimerContext, out: Collector[OrderPayResult]): Unit = {
+  override def onTimer(timestamp: Long, ctx: KeyedProcessFunction[String, OrderEvent, OrderPayResult]#OnTimerContext, out: Collector[OrderPayResult]): Unit = {
     // 定时器触发，说明create和pay有一个没来
     if( isPayedState.value() ){
       // 如果pay过，说明create没来
-      ctx.output(new OutputTag[OrderPayResult]("data not found"), OrderPayResult(ctx.getCurrentKey, "payed but not found create"))
+      ctx.output(new OutputTag[OrderPayResult]("data not found"), OrderPayResult(ctx.getCurrentKey.toString, "payed but not found create"))
     } else{
       // 没有pay过，真正超时
-      ctx.output(new OutputTag[OrderPayResult]("timeout"), OrderPayResult(ctx.getCurrentKey, "timeout"))
+      ctx.output(new OutputTag[OrderPayResult]("timeout"), OrderPayResult(ctx.getCurrentKey.toString, "timeout"))
     }
     // 清空状态
     isCreatedState.clear()

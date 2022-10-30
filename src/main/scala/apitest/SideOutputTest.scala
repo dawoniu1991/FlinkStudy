@@ -6,6 +6,7 @@ import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrderness
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.util.Collector
+import sourcetest.SensorReading
 
 object SideOutputTest {
   def main(args: Array[String]): Unit = {
